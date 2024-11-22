@@ -1,0 +1,10 @@
+set number
+
+" NeoVim Plugins - vim Plug
+call plug#begin()
+
+" NeoVim Tree
+Plug 'nvim-tree/nvim-web-devicons' " optional
+Plug 'nvim-tree/nvim-tree.lua'
+
+call plug#end()
