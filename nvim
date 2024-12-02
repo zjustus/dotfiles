@@ -7,4 +7,6 @@ call plug#begin()
 Plug 'nvim-tree/nvim-web-devicons' " optional
 Plug 'nvim-tree/nvim-tree.lua'
 
+" fzf
+
 call plug#end()
