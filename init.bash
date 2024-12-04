@@ -4,6 +4,7 @@ USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
 echo "Installing Haskling Font"
 
 sudo apt install -y fontconfig
+sudo apt install -y make
 
 wget -P $USER_HOME/.local/share/fonts https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/Hasklig.zip \
 && cd $USER_HOME/.local/share/fonts \
@@ -13,6 +14,13 @@ wget -P $USER_HOME/.local/share/fonts https://github.com/ryanoasis/nerd-fonts/re
 
 cd $USER_HOME/
 echo "Installing Applications"
+
+# Install tmux
+apt-install tmux
+
+# Install fzf
+mkdir /opt/fzf
+wget -qO- https://github.com/junegunn/fzf/releases/download/v0.56.3/fzf-0.56.3-linux_amd64.tar.gz | tar -xvz -C /opt/fzf
 
 
 # Install NeoVim
@@ -24,11 +32,6 @@ sudo rm nvim-linux64.tar.gz
 # Install NeoVim Package Manager
 sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs \
        https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
-
-# Install fzf
-mkdir /opt/fzf
-wget -qO- https://github.com/junegunn/fzf/releases/download/v0.56.3/fzf-0.56.3-linux_amd64.tar.gz | tar -xvz -C /opt/fzf
-
 
 # Install DotFiles
 echo "Creating Your Enviorment"
