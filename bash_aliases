@@ -8,6 +8,9 @@ alias vim='nvim'
 # Project Specific
 alias tfo="terraform output -raw kubeconfig > kube.config && export KUBECONFIG=${HOME}/web-prod/kube.config"
 
+source ~/.bashrcsource ~/.bashr# MakeFile Command Helper
+alias makels="grep '^[^#[:space:]].*:' [Mm]akefile"
+
 kns() {
     if [ -z "$1" ]; then
     namespace=$(kubectl get namespace --no-headers | fzf | awk '{ print $1}')
