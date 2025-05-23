@@ -15,9 +15,10 @@ run_with_spinner() {
     local cmd="$1"
     local msg="$2"
 
-    echo -n "$msg "
+    echo -n "$msg  "
 
-    bash -c "$cmd" > /dev/null 2>&1 &
+    # bash -c "$cmd" > /dev/null 2>&1 &
+    eval "$cmd" > /dev/null 2>&1 &
     local pid=$!
 
     local spin='|/-\'
@@ -30,28 +31,27 @@ run_with_spinner() {
     done
 
     wait $pid
-    echo -e "\b done."
+    echo -e "\b\b - done."
 }
 
 # MARK: Update Packages
 run_with_spinner "sudo apt update" "Updating package lists"
 run_with_spinner "sudo apt upgrade -y" "Upgrading installed packages"
 
-
 # MARK: Add ssh-agent to bashrc
 line='eval $(ssh-agent)'
 if ! grep -Fxq "$line" ~/.bashrc; then
     echo "$line" >> ~/.bashrc
-    echo "Appended '$line' to ~/.bashrc"
+    echo "Appended ssh-agent to ~/.bashrc"
 else
-    echo "'$line' already exists in ~/.bashrc"
+    echo "ssh-agent already exists in ~/.bashrc"
 fi
 
 # MARK: Add authorized_keys
 AUTH_KEYS=~/.ssh/authorized_keys
-if [ ! -f "$AUTH_KEYS" ]; then
+if [ ! -s "$AUTH_KEYS" ]; then
     echo ""
-    read -p "No ~/.ssh/authorized_keys found. Do you want to generate and add a new SSH key? (y/n): " add_ssh_key
+    read -p "Do you want to generate and add a new SSH key? (y/n): " add_ssh_key
     if [[ "$add_ssh_key" =~ ^[Yy]$ ]]; then
 
         # Generate SSH key if it doesn't already exist
@@ -62,18 +62,20 @@ if [ ! -f "$AUTH_KEYS" ]; then
         mv ~/.ssh/$computer_key.pub ~/.ssh/$computer_key.pem
         cat ~/.ssh/$computer_key.pem >> "$AUTH_KEYS"        
         chmod 600 "$AUTH_KEYS"
-        echo "SSH public key added to authorized_keys. Keep it secret. Keep it safe."
+        echo "SSH public key added to authorized_keys."
+        echo "Keep it secret. Keep it safe."
 
     else
         echo "Skipping SSH key setup."
     fi
 else
-    echo "~/.ssh/authorized_keys already configured."
+    echo "Authorized Key already configured"
 fi
 
 # MARK: Add bitbucket keys
 bitbucket_file=$(find ~/.ssh -type f -name "*bitbucket*.key" 2>/dev/null | head -n 1)
 if [ -z "$bitbucket_file" ]; then
+    echo ""
     read -p "No Bitbucket .key file found in ~/.ssh. Do you want to generate one? (y/n):" add_bitbucket_key
     if [[ "$add_bitbucket_key" =~ ^[Yy]$ ]]; then
         # Generate Key
@@ -102,7 +104,26 @@ EOF
     fi
     # Optional: prompt to generate or import a Bitbucket key here
 else
-    echo "Bitbucket key found: $bitbucket_key"
+    echo "Bitbucket key found: $bitbucket_file"
+fi
+
+# MARK: Git Setup
+existing_username=$(git config --global user.name)
+existing_email=$(git config --global user.email)
+if [ -n "$existing_username" ] && [ -n "$existing_email" ]; then
+    echo "Git username and email are already set"
+else
+    echo ""
+    read -p "Enter your Git username: " git_username
+    read -p "Enter your Git email: " git_email
+
+    git config --global user.name "$git_username"
+    git config --global user.email "$git_email"
+
+    echo "Git username and email set to:"
+    git config --global user.name
+    git config --global user.email
+    echo ""
 fi
 
 
@@ -121,9 +142,6 @@ echo \
 sudo apt-get update
 
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-sudo systemctl enable docker.service
-sudo systemctl enable containerd.service
-
 
 DOCKER_LOG_CONFIG=$(cat <<EOF
 {
@@ -136,18 +154,22 @@ DOCKER_LOG_CONFIG=$(cat <<EOF
 EOF
 )
 echo "$DOCKER_LOG_CONFIG" | sudo tee /etc/docker/daemon.json > /dev/null
+
+sudo systemctl enable docker.service
+sudo systemctl enable containerd.service
+
 }
-run_with_spinner install_docker "Installing Docker"
-echo "You must log out and log back in for Docker group changes to take effect."
+
+if ! command -v docker &> /dev/null; then
+    read -p "Do you want configure docker? (y/n): " config_docker
+    if [[ "$config_docker" =~ ^[Yy]$ ]]; then
+    run_with_spinner install_docker "Installing Docker"
+    echo "You must log out and log back in for Docker group changes to take effect."
+    fi
+else
+    echo "Docker is already installed, no action needed"
+fi
+
 echo ""
-
-# MARK Git Setup
-read -p "Enter your Git username: " git_username
-read -p "Enter your Git email: " git_email
-
-git config --global user.name "$git_username"
-git config --global user.email "$git_email"
-
-echo "Git username and email set to:"
-git config --global user.name
-git config --global user.email
+echo "System is now fully configured."
+echo "Have Fun"
