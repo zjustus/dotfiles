@@ -172,4 +172,6 @@ fi
 
 echo ""
 echo "System is now fully configured."
+echo "You might need a reboot for docker permissions to propogate"
+echo "Check Bitbucket keys with 'ssh -T git@bitbucket.org'"
 echo "Have Fun"
