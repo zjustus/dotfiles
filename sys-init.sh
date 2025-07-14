@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+# Prevent execution as root or via sudo
+if [ "$EUID" -eq 0 ] || [ -n "$SUDO_USER" ]; then
+    echo "Error: Do not run this script as root or with sudo. Exiting."
+    exit 1
+fi
+
 # Check if the user has sudo privileges
 if ! sudo -v; then
     echo "Error: User does not have sudo privileges. Exiting."
@@ -157,6 +163,8 @@ echo "$DOCKER_LOG_CONFIG" | sudo tee /etc/docker/daemon.json > /dev/null
 
 sudo systemctl enable docker.service
 sudo systemctl enable containerd.service
+sudo groupadd docker
+sudo usermod -aG docker $USER
 
 }
 
